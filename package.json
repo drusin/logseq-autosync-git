@@ -1,0 +1,19 @@
+{
+  "name": "logseq-autosync-git",
+  "version": "0.0.1",
+  "author": "drusin",
+  "description": "Plugin that automatically syncs the db via git.",
+  "license": "MIT",
+  "source": "index.js",
+  "scripts": {
+    "build": "parcel build --no-source-maps"
+  },
+  "logseq": {
+    "id": "_edodonfur",
+    "main": "dist/index.js"
+  },
+  "devDependencies": {
+    "@logseq/libs": "^0.0.15",
+    "parcel": "^2.9.3"
+  }
+}
