@@ -13,7 +13,7 @@
     "main": "dist/index.js"
   },
   "devDependencies": {
-    "@logseq/libs": "^0.0.15",
-    "parcel": "^2.9.3"
+    "@logseq/libs": "^0.0.17",
+    "parcel": "^2.11.0"
   }
 }
