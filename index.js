@@ -10,28 +10,20 @@ const commitMessageSetting = {
   type: 'string',
   default: 'commit from logseq-autosync-git',
 }
-const debounceSetting = {
-  key: 'git-sync:debounce-s',
-  title: 'How long the plugin waits after you stopped typing to sync (in seconds)',
+const intervalSetting = {
+  key: 'git-sync:interval-s',
+  title: 'The plugin will check every x seconds after changes were made for the user to exit edit mode',
   type: 'number',
   default: 5,
 }
 
-const settings = [commitMessageSetting, debounceSetting];
+const settings = [commitMessageSetting, intervalSetting];
 
 function msg(message = '', blocking = false) {
   logseq.UI.showMsg(message);
   if (blocking) {
     alert(message);
   }
-}
-
-let scheduledSync;
-function debounce(func) {
-  if (scheduledSync) {
-    clearTimeout(scheduledSync);
-  }
-  scheduledSync = setTimeout(async () => await func(), logseq.settings[debounceSetting.key] * 1000);
 }
 
 async function sync() {
@@ -57,7 +49,33 @@ async function git(allParams = []) {
   return true;
 }
 
+let dirty = false;
+let saving = false;
+
+function onChanged() {
+  if (dirty) {
+    return;
+  }
+  dirty = true;
+  trySync();
+}
+
+async function trySync() {
+  if (await logseq.Editor.checkEditing()) {
+    setTimeout(trySync, logseq.settings[intervalSetting.key] * 1000);
+    return;
+  }
+  if (!dirty || saving) {
+    return;
+  }
+  saving = true;
+  await save();
+  dirty = false;
+  saving = false;
+}
+
 async function start() {
+  console.log('logseq-autosync-git started');
   const syncResult = await sync();
   if (syncResult) {
     msg('Sync successful');
@@ -65,8 +83,7 @@ async function start() {
   else {
     msg('Could not sync repository');
   }
-  logseq.DB.onChanged(() => debounce(save));
-  logseq.beforeunload(async () => await save());
+  logseq.DB.onChanged(onChanged);
 }
 
 logseq.useSettingsSchema(settings).ready(start).catch(console.error);
